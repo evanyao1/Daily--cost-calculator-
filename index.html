@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日成本计算器 - 快速体验版</title>
+    <title>每日成本计算器 - 高级版</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,20 +43,6 @@
         button:hover {
             background-color: #e66778;
         }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #fef0f3;
-            color: #333;
-        }
         .item-card {
             display: flex;
             flex-direction: row;
@@ -87,17 +73,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>每日成本计算器 - 快速体验版</h1>
+        <h1>每日成本计算器 - 高级版</h1>
 
         <label for="itemName">物品名称：</label>
         <input type="text" id="itemName" placeholder="输入物品名称">
 
         <label for="category">物品类别：</label>
-        <select id="category">
-            <option value="电脑">电脑</option>
-            <option value="键盘">键盘</option>
-            <option value="平板">平板</option>
-        </select>
+        <select id="category"></select>
+        <button onclick="addCategory()">添加新类别</button>
 
         <label for="price">购买价格（元）：</label>
         <input type="number" id="price" placeholder="输入价格" step="0.01">
@@ -113,6 +96,37 @@
     </div>
 
     <script>
+        const categories = JSON.parse(localStorage.getItem('categories')) || ["电脑", "键盘", "平板"];
+        const items = JSON.parse(localStorage.getItem('items')) || [];
+
+        function saveToLocalStorage() {
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('items', JSON.stringify(items));
+        }
+
+        function initializeCategories() {
+            const categorySelect = document.getElementById("category");
+            categorySelect.innerHTML = "";
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        function addCategory() {
+            const newCategory = prompt("请输入新类别名称：");
+            if (newCategory && !categories.includes(newCategory)) {
+                categories.push(newCategory);
+                saveToLocalStorage();
+                initializeCategories();
+                alert(`新类别“${newCategory}”已添加！`);
+            } else {
+                alert("类别已存在或无效！");
+            }
+        }
+
         function addItem() {
             const itemName = document.getElementById('itemName').value;
             const category = document.getElementById('category').value;
@@ -124,39 +138,48 @@
                 return;
             }
 
-            const iconMap = {
-                "电脑": "https://cdn-icons-png.flaticon.com/512/1946/1946488.png",
-                "键盘": "https://cdn-icons-png.flaticon.com/512/3144/3144456.png",
-                "平板": "https://cdn-icons-png.flaticon.com/512/3195/3195150.png"
-            };
-
             const today = new Date();
             const daysUsed = Math.ceil((today - purchaseDate) / (1000 * 60 * 60 * 24));
             const dailyCost = (price / daysUsed).toFixed(2);
 
+            const item = {
+                itemName,
+                category,
+                price: price.toFixed(2),
+                purchaseDate: purchaseDate.toISOString().split('T')[0],
+                daysUsed,
+                dailyCost
+            };
+            items.push(item);
+            saveToLocalStorage();
+            renderItems();
+        }
+
+        function renderItems() {
             const itemsList = document.getElementById("itemsList");
-            const itemCard = document.createElement("div");
-            itemCard.className = "item-card";
+            itemsList.innerHTML = "";
+            items.forEach(item => {
+                const itemCard = document.createElement("div");
+                itemCard.className = "item-card";
 
-            itemCard.innerHTML = `
-                <img src="${iconMap[category]}" class="icon" alt="${category}">
-                <div class="item-info">
-                    <strong>${itemName}</strong><br>
-                    类别: ${category} | 价格: ${price.toFixed(2)} 元<br>
-                    已用天数: ${daysUsed} 天 | 日均成本: ${dailyCost} 元
-                </div>
-            `;
-
-            itemsList.appendChild(itemCard);
+                itemCard.innerHTML = `
+                    <div class="item-info">
+                        <strong>${item.itemName}</strong><br>
+                        类别: ${item.category} | 价格: ${item.price} 元<br>
+                        已用天数: ${item.daysUsed} 天 | 日均成本: ${item.dailyCost} 元
+                    </div>
+                `;
+                itemsList.appendChild(itemCard);
+            });
 
             const evanMessage = document.getElementById("evanMessage");
-            evanMessage.textContent = `宝贝，继续加油哦～合理使用，让它变得超值！`;
-
-            document.getElementById('itemName').value = "";
-            document.getElementById('category').value = "电脑";
-            document.getElementById('price').value = "";
-            document.getElementById('purchaseDate').value = "";
+            evanMessage.textContent = `宝贝，目前有 ${items.length} 个记录哦～继续加油！`;
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeCategories();
+            renderItems();
+        });
     </script>
 </body>
 </html>
