@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日成本计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fef5f9; /* Soft pink background */
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #f8cdd1;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #ff7a8a; /* Pink accent color */
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #f8cdd1;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #ff7a8a; /* Pink button */
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e66778; /* Darker pink on hover */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #f8cdd1;
+            text-align: center;
+            padding: 10px;
+        }
+        th {
+            background-color: #fef0f3; /* Lighter pink for header */
+            font-weight: bold;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #ff7a8a;
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        .evan-message {
+            margin-top: 20px;
+            font-size: 1em;
+            background-color: #fff5f8;
+            border: 1px solid #f8cdd1;
+            padding: 10px;
+            border-radius: 5px;
+            color: #e66778;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>每日成本计算器</h1>
+        <label for="itemName">物品名称：</label>
+        <input type="text" id="itemName" placeholder="输入物品名称">
+        
+        <label for="price">购买价格（元）：</label>
+        <input type="number" id="price" placeholder="输入价格" step="0.01">
+        
+        <label for="purchaseDate">购买日期：</label>
+        <input type="date" id="purchaseDate">
+
+        <label for="usageFactor">使用频率系数（例如：每天使用为1，偶尔使用为0.5）：</label>
+        <input type="number" id="usageFactor" placeholder="输入使用频率系数" step="0.1">
+
+        <label for="targetCost">目标每日成本（元）：</label>
+        <input type="number" id="targetCost" placeholder="输入目标每日成本" step="0.01">
+        
+        <button onclick="addItem()">添加物品</button>
+
+        <table id="itemsTable">
+            <thead>
+                <tr>
+                    <th>物品名称</th>
+                    <th>购买价格（元）</th>
+                    <th>购买日期</th>
+                    <th>使用频率系数</th>
+                    <th>实际每日成本（元）</th>
+                    <th>目标每日成本（元）</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="evan-message" id="evanMessage"></div>
+    </div>
+
+    <script>
+        function addItem() {
+            const itemName = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const purchaseDate = new Date(document.getElementById('purchaseDate').value);
+            const usageFactor = parseFloat(document.getElementById('usageFactor').value);
+            const targetCost = parseFloat(document.getElementById('targetCost').value);
+            const today = new Date();
+
+            if (!itemName || isNaN(price) || !purchaseDate || isNaN(usageFactor) || isNaN(targetCost)) {
+                alert("请完整填写所有信息！");
+                return;
+            }
+
+            const daysUsed = Math.ceil((today - purchaseDate) / (1000 * 60 * 60 * 24));
+            const adjustedDailyCost = ((price / daysUsed) * usageFactor).toFixed(2);
+            const status = adjustedDailyCost <= targetCost ? "达标" : "超标";
+
+            const tableBody = document.getElementById("itemsTable").querySelector("tbody");
+            const newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td>${itemName}</td>
+                <td>${price.toFixed(2)}</td>
+                <td>${purchaseDate.toISOString().split('T')[0]}</td>
+                <td>${usageFactor}</td>
+                <td>${adjustedDailyCost}</td>
+                <td>${targetCost.toFixed(2)}</td>
+                <td>${status}</td>
+            `;
+
+            // Display Evan's motivational message
+            const evanMessage = document.getElementById("evanMessage");
+            if (status === "达标") {
+                evanMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/742/742751.png" class="icon">宝贝，你表现得太棒了！继续保持，用好每一件物品哦～`;
+            } else {
+                evanMessage.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/742/742751.png" class="icon">宝贝，这个成本有点高了，要加油多用几次争取回本哦！`;
+            }
+
+            // 清空输入框内容
+            document.getElementById('itemName').value = "";
+            document.getElementById('price').value = "";
+            document.getElementById('purchaseDate').value = "";
+            document.getElementById('usageFactor').value = "";
+            document.getElementById('targetCost').value = "";
+        }
+    </script>
+</body>
+</html>
